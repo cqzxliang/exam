@@ -1,23 +1,53 @@
-<ion-header>
-  <ion-navbar>
-    <ion-title>
-      {{exam?.title}}
-    </ion-title>
-  </ion-navbar>
-</ion-header>
-<ion-content padding>
-  <ion-slides style="height: 93%">
-    <ion-slide *ngFor="let q of allQuestionsAfterFormat;let i =index ">
-      <div class="question">
-        <span>{{q.num}}、{{q.title}}</span>
-      </div>
-      <div>
-        <sg-button [mode]="q.type" [options]="q.options" (result)="getUserAnswer($event,i,q.id,q.rightAnswer,q.score)"></sg-button>
-      </div>
-    </ion-slide>
-  </ion-slides>
-  <div class="bottom-btn">
-    <button ion-button block class="default" (click)="goToNextQuestion()" [disabled]="!canClick" *ngIf="!slides.isEnd()">确定</button>
-    <button ion-button block class="default" (click)="finish()" [disabled]="!canClick" *ngIf="slides.isEnd()">交卷</button>
-  </div>
-</ion-content>
+page-home {
+  font-family: "楷体";
+  $fontColor: black;
+  .countdown{
+     position: absolute;
+     line-height:5%;
+     height: 5%;
+     right: 5%;
+     color: red;
+     font-size: 1.5em;
+  }
+  .slide-zoom {
+    height: 100%;
+  }
+  .question {
+    width: 100%;
+    top: 10%;
+    margin-bottom: 10%;
+    span {
+      font-size: 20px;
+      font-weight: 800;
+    }
+  }
+  .default {
+    border-color: #cbcbcb;
+    color: $fontColor;
+  }
+  .checked {
+    border-color: green;
+    color: $fontColor;
+    border: 2px solid rgb(123, 247, 123);
+  }
+  .arrow-btn{
+    position: absolute;
+    height: 8%;
+    width: 100%;
+    font-size:2em;
+    bottom: 0;
+    .prev{
+      position: absolute;
+      left:20%; 
+    }
+    .next{
+      position: absolute;
+      right: 20%;
+    }
+  }
+  .bottom-btn {
+    position: absolute;
+    bottom: 0;
+    width: 92%;
+  }
+}

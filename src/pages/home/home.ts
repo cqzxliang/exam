@@ -21,6 +21,9 @@ export class HomePage implements OnInit {
   allQuestionsAfterFormat: MyQuestion[] = []; // 对选项进行处理，扁平化
   userAnswer: UserAnswer[] = [];
   canClick: boolean = false;  // 是否可以点击确定按钮。要求先选择答案才能点
+  countdownMinute: string = '01';  //倒计时分钟
+  countdownSecond: string = '30';  //倒计时秒数
+  interval_id: any; 
 
   // 用户答错题目的详细信息，“查看错题”页面要用到
   wrongAnswers: {
@@ -37,7 +40,7 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    this.slides.lockSwipes(true);
+    // this.slides.lockSwipes(true);
     this.service.getExamById(1)
       .map((r) => r.json().result)
       .subscribe(res => {
@@ -52,19 +55,22 @@ export class HomePage implements OnInit {
       });
 
 
-
+    this.interval_id = setInterval(() => {
+      this.countDown();
+    }, 1000);
 
   }
 
 
-  getUserAnswer(e, index: number, questionId: number, rightAnswer: string, score: number) {
+  getUserAnswer(e, index: number, questionId: number, rightAnswer: string, num: number, score: number) {
     this.userAnswer[index] = {
       questionId: questionId,
       userAnswer: e,
       rightAnswer: rightAnswer,
+      num: num,
       score: score
     };
-    this.canClick = true;
+    // this.canClick = true;
   }
 
   goToNextQuestion() {
@@ -75,46 +81,47 @@ export class HomePage implements OnInit {
   }
 
   // 交卷
-  finish() {
+  finish() {  
+    this.commonService.showOptionConfirm('提示', '确定要交卷吗？', async () => {
+      this.finishConfirm();
+    });
+  }
+
+  async finishConfirm() {
     // 获取真实的user id，目前hard code 1
     let userId = 1;
-    this.commonService.showOptionConfirm('提示', '确定要交卷吗？', async () => {
-
-      // 1.把错题保存在本地，后面查看错题使用
-      this.userAnswer.forEach((value, index) => {
-        if (value.rightAnswer !== value.userAnswer) {
-          let temp = {
-            questionTitle: this.getQuestionTitle(value.questionId),
-            userAnswerDesc: this.getAnswerTitle(value.questionId, value.userAnswer),
-            rightAnswerDesc: this.getAnswerTitle(value.questionId, value.rightAnswer),
-          }
-          this.wrongAnswers.push(temp);
+    // 1.把错题保存在本地，后面查看错题使用
+    this.userAnswer.forEach((value, index) => {
+      if (value.rightAnswer !== value.userAnswer) {
+        let temp = {
+          questionTitle: this.getQuestionTitle(value.questionId),
+          userAnswerDesc: this.getAnswerTitle(value.questionId, value.userAnswer),
+          rightAnswerDesc: this.getAnswerTitle(value.questionId, value.rightAnswer),
         }
-      });
-
-      // 2. 计算分数，把用户的答案保存到数据库
-      let score = this.calScore();
-      let res = await this.service.getAnswerSeq(userId).toPromise();
-      let seq = res.json().result;
-      let questionIds = this.userAnswer.map((value, index) => value.questionId);
-      let answers = this.userAnswer.map((value, index) => value.userAnswer);
-      let body = {
-        examId: this.exam.id,
-        questionIds: questionIds,
-        userId: userId,
-        seq: (seq ? seq : 0) + 1,
-        answers: answers
+        this.wrongAnswers.push(temp);
       }
-      await this.service.insertAnswer(body).toPromise();
-
-      this.navCtrl.setRoot(ScorePage, {
-        actualScore: score,
-        passScore: this.exam.passScore,
-        wrongAnswers: this.wrongAnswers
-      });
-
     });
 
+    // 2. 计算分数，把用户的答案保存到数据库
+    let score = this.calScore();
+    let res = await this.service.getAnswerSeq(userId).toPromise();
+    let seq = res.json().result;
+    let questionIds = this.userAnswer.map((value, index) => value.questionId);
+    let answers = this.userAnswer.map((value, index) => value.userAnswer);
+    let body = {
+      examId: this.exam.id,
+      questionIds: questionIds,
+      userId: userId,
+      seq: (seq ? seq : 0) + 1,
+      answers: answers
+    }
+    await this.service.insertAnswer(body).toPromise();
+
+    this.navCtrl.setRoot(ScorePage, {
+      actualScore: score,
+      passScore: this.exam.passScore,
+      wrongAnswers: this.wrongAnswers
+    });
   }
 
   getQuestionTitle(questionId: number) {
@@ -161,6 +168,56 @@ export class HomePage implements OnInit {
       }
     });
     return score;
+  }
+
+  prevQuestion() {
+    this.slides.slidePrev();
+  }
+
+  nextQuestion() {
+    this.slides.slideNext();
+  }
+
+  hasPrev(num: number) {
+    let q = this.userAnswer.filter(q => (q.num == num - 1)).length;
+    if (q > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  hasNext(num: number) {
+    let q = this.userAnswer.filter(q => (q.num == num)).length;
+    if (q > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  //倒計時，到時自動提交問卷 
+  countDown() {
+    let minute: number = parseInt(this.countdownMinute);
+    let second: number = parseInt(this.countdownSecond);
+    if (minute == 0 && second == 0) {
+      clearInterval(this.interval_id);
+      this.finishConfirm();
+    } else {
+      if (second == 0) {
+        minute = minute - 1;
+        second = 59;
+      } else {
+        second = second - 1;
+      }
+      this.countdownMinute = this.fillZero(minute) + '';
+      this.countdownSecond = this.fillZero(second) + '';
+    }
+  }
+
+  fillZero(v: any) {
+    if (v < 10) { v = '0' + v; }
+    return v;
   }
 
   formatData(question: Question[]): MyQuestion[] {
@@ -245,5 +302,6 @@ class UserAnswer {
   questionId: number;
   userAnswer: string;
   rightAnswer: string;
+  num: number;
   score: number;
 }
