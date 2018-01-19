@@ -1,6 +1,14 @@
 page-home {
   font-family: "楷体";
   $fontColor: black;
+  .countdown{
+     position: absolute;
+     line-height:5%;
+     height: 5%;
+     right: 5%;
+     color: red;
+     font-size: 1.5em;
+  }
   .slide-zoom {
     height: 100%;
   }
@@ -21,6 +29,21 @@ page-home {
     border-color: green;
     color: $fontColor;
     border: 2px solid rgb(123, 247, 123);
+  }
+  .arrow-btn{
+    position: absolute;
+    height: 8%;
+    width: 100%;
+    font-size:2em;
+    bottom: 0;
+    .prev{
+      position: absolute;
+      left:20%; 
+    }
+    .next{
+      position: absolute;
+      right: 20%;
+    }
   }
   .bottom-btn {
     position: absolute;
