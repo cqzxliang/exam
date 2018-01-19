@@ -3,7 +3,6 @@
     <ion-title>
       {{exam?.title}}
     </ion-title>
-    <div class="countdown">{{countdownMinute}}:{{countdownSecond}}</div>
   </ion-navbar>
 </ion-header>
 <ion-content padding>
@@ -13,16 +12,12 @@
         <span>{{q.num}}、{{q.title}}</span>
       </div>
       <div>
-        <sg-button [mode]="q.type" [options]="q.options" (result)="getUserAnswer($event,i,q.id,q.rightAnswer,q.num,q.score)"></sg-button>
-      </div>
-      <div class="arrow-btn">
-        <ion-icon class="prev" name="arrow-dropleft" *ngIf="hasPrev(q.num)" (click)="prevQuestion()"></ion-icon>
-        <ion-icon class="next" name="arrow-dropright" *ngIf="hasNext(q.num)" (click)="nextQuestion()"></ion-icon>
+        <sg-button [mode]="q.type" [options]="q.options" (result)="getUserAnswer($event,i,q.id,q.rightAnswer,q.score)"></sg-button>
       </div>
     </ion-slide>
   </ion-slides>
   <div class="bottom-btn">
-    <!-- <button ion-button block class="default" (click)="goToNextQuestion()" [disabled]="!canClick" *ngIf="!slides.isEnd()">确定</button> -->
-    <button ion-button block class="default" (click)="finish()"  *ngIf="userAnswer.length==allQuestionsAfterFormat.length">交卷</button>
+    <button ion-button block class="default" (click)="goToNextQuestion()" [disabled]="!canClick" *ngIf="!slides.isEnd()">确定</button>
+    <button ion-button block class="default" (click)="finish()" [disabled]="!canClick" *ngIf="slides.isEnd()">交卷</button>
   </div>
 </ion-content>
